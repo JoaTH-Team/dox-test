@@ -1,36 +1,52 @@
-# This is a basic workflow to help you get started with Actions
+name: Building Page
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
+    concurrency: ci-${{ github.ref }}
+
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - uses: actions/checkout@main
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.7 
+      - name: Restore Previous Cache
+        id: cache-build-restore
+        uses: actions/cache/restore@main
+        with:
+          path: |
+            .haxelib/
+          key: cache-haxelib
+      - name: Installing Libraries
+        run:
+          haxelib setup ~/haxelib
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install dox
+          haxelib install format
+          haxelib list
+      - name: Build Page
+        run:
+          chmod +x docs/docs.sh
+          docs/docs.sh
+      - name: Clear Previous Cache
+        uses: actions/github-script@main
+        with:
+          script: await require('./actions/cache/clear-cache.js')({github, context}, 'cache-haxelib');      
+      - name: Save Current Cache
+        uses: actions/cache@main
+        with:
+          key: cache-haxelib
+          path: |
+            .haxelib/
+          restore-keys: |
+            cache-haxelib

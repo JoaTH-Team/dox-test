@@ -1,0 +1,25 @@
+-L lime
+-L openfl
+-L flixel
+-cp source
+
+--define FLX_NO_HEALTH
+--define FLX_NO_DEBUG
+
+--macro lime._internal.macros.DefineMacro.run()
+--macro openfl.utils._internal.ExtraParamsMacro.include()
+--remap flash:openfl
+--macro flixel.system.macros.FlxDefines.run()
+
+--macro include('flixel', true, ['flixel.addons.editors.spine.*', 'flixel.addons.nape.*', 'flixel.system.macros.*'])
+--macro keep('Main')
+
+--no-output
+
+--define doc-gen
+--define message.reporting=pretty
+
+-xml docs/doc.xml
+--cpp docs-bin/
+
+--dce no
