@@ -36,6 +36,7 @@ jobs:
       - name: Build Page
         run:
           chmod +x docs/docs.sh
+          mkdir -p pages
           docs/docs.sh
       - name: github-actions deploy
         uses: JamesIves/github-pages-deploy-action@v4
