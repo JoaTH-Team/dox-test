@@ -11,21 +11,26 @@ on:
 jobs:
   build:
     concurrency: ci-${{ github.ref }}
+
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@main
+      
       - uses: krdlab/setup-haxe@master
         with:
-          haxe-version: 4.3.7 
+          haxe-version: 4.3.6
+
       - name: Restore Previous Cache
         id: cache-build-restore
         uses: actions/cache/restore@main
         with:
           path: |
             .haxelib/
-          key: cache-haxelib
-      - name: Installing Libraries
-        run:
+          key: cache-page
+      
+      - name: Install Haxe Libraries
+        run: |
           haxelib setup ~/haxelib
           haxelib install lime
           haxelib install openfl
@@ -33,25 +38,28 @@ jobs:
           haxelib install dox
           haxelib install format
           haxelib list
-      - name: Build Page
-        run:
-          chmod +x docs/docs.sh
-          mkdir -p pages
-          docs/docs.sh
+      
+      - name: Create Documentation Site
+        run: |
+            chmod +x docs/docs.sh
+            docs/docs.sh
+      
       - name: github-actions deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: pages
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
+
       - name: Clear Previous Cache
         uses: actions/github-script@main
         with:
-          script: await require('./actions/cache/clear-cache.js')({github, context}, 'cache-haxelib');      
+          script: await require('./actions/clearCache.js')({github, context}, 'cache-page');
+
       - name: Save Current Cache
         uses: actions/cache@main
         with:
-          key: cache-haxelib
+          key: cache-page
           path: |
             .haxelib/
           restore-keys: |
-            cache-haxelib
+            cache-page
